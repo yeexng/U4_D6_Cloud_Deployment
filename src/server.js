@@ -14,12 +14,30 @@ import filesAvatarRouter from "./api/files/avatarFile.js";
 import { join } from "path";
 
 const server = Express();
-const port = 3009;
+const port = process.env.PORT || 3001;
 const publicFolderPath = join(process.cwd(), "./public");
+const whitelist = [process.env.FE_DEV_URL];
 // /Users/xuanng/Desktop/Epicode/Untitled/public
 console.log("Public Path:", publicFolderPath);
 server.use(Express.static(publicFolderPath));
-server.use(cors());
+server.use(
+  cors({
+    origin: (currentOrigin, corsNext) => {
+      if (!currentOrigin || whitelist.indexOf(currentOrigin) !== -1) {
+        // origin is in the whitelist
+        corsNext(null, true);
+      } else {
+        // origin is not in the whitelist
+        corsNext(
+          createHttpError(
+            400,
+            `Origin ${currentOrigin} is not in the whitelist!`
+          )
+        );
+      }
+    },
+  })
+);
 server.use(Express.json()); // if don't add all req body will be undefined
 
 server.use("/authors", authorsRouter); //here will be adding the middle-part of the url
