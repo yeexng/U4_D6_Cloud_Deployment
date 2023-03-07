@@ -12,11 +12,12 @@ import cors from "cors";
 import filesRouter from "./api/files/index.js";
 import filesAvatarRouter from "./api/files/avatarFile.js";
 import { join } from "path";
+import createHttpError from "http-errors";
 
 const server = Express();
 const port = process.env.PORT || 3001;
 const publicFolderPath = join(process.cwd(), "./public");
-const whitelist = [process.env.FE_DEV_URL];
+const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
 // /Users/xuanng/Desktop/Epicode/Untitled/public
 console.log("Public Path:", publicFolderPath);
 server.use(Express.static(publicFolderPath));

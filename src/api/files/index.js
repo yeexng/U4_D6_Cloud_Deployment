@@ -1,7 +1,8 @@
 import Express from "express";
 import multer from "multer";
-import { saveCoverImage } from "../../lib/fs-tools.js";
+import { getBlogPosts, saveCoverImage } from "../../lib/fs-tools.js";
 import { extname } from "path";
+import { getPDFJSONReadableStream } from "../../lib/pdf-tools.js";
 
 const filesRouter = Express.Router();
 
@@ -36,5 +37,20 @@ filesRouter.post(
 //     next(error);
 //   }
 // });
+
+filesRouter.get("/pdf", async (req, res, next) => {
+  try {
+    res.setHeader("Content-Disposition", "attachment; filename=example.pdf");
+    const blogPosts = await getBlogPosts();
+    const source = getPDFJSONReadableStream(blogPosts[0]);
+    const destination = res;
+
+    pipeline(source, destination, (err) => {
+      if (err) console.log(err);
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default filesRouter;
