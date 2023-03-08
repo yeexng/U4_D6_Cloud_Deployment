@@ -1,8 +1,9 @@
 import Express from "express";
 import multer from "multer";
+import { pipeline } from "stream";
 import { getBlogPosts, saveCoverImage } from "../../lib/fs-tools.js";
 import { extname } from "path";
-import { getPDFJSONReadableStream } from "../../lib/pdf-tools.js";
+import { blogPostToPDFReadableStream } from "../../lib/pdf-tools.js";
 
 const filesRouter = Express.Router();
 
@@ -38,16 +39,42 @@ filesRouter.post(
 //   }
 // });
 
-filesRouter.get("/pdf", async (req, res, next) => {
-  try {
-    res.setHeader("Content-Disposition", "attachment; filename=example.pdf");
-    const blogPosts = await getBlogPosts();
-    const source = getPDFJSONReadableStream(blogPosts[0]);
-    const destination = res;
+// filesRouter.get("/:blogPostId/pdf", async (req, res, next) => {
+//   try {
+//     const blogPosts = await getBlogPosts();
+//     const blogPostWithID = blogPosts.find(
+//       (b) => b.id === req.params.blogPostId
+//     );
+//     if (blogPostWithID) {
+//       res.setHeader("Content-Disposition", "attachment; filename=example.pdf");
+//       const source = getPDFJSONReadableStream(blogPostWithID);
+//       const destination = res;
+//       pipeline(source, destination, (err) => {
+//         if (err) console.log(err);
+//       });
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 
-    pipeline(source, destination, (err) => {
-      if (err) console.log(err);
-    });
+filesRouter.get("/:blogPostsId/pdf", async (req, res, next) => {
+  try {
+    const blogPostsArray = await getBlogPosts();
+    const foundBlogPost = blogPostsArray.find(
+      (b) => b.id === req.params.blogPostsId
+    );
+    if (foundBlogPost) {
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=${foundBlogPost.id}.pdf`
+      ); //naming file
+      const source = await blogPostToPDFReadableStream(foundBlogPost);
+      const destination = res;
+      pipeline(source, destination, (err) => {
+        if (err) console.log(err);
+      });
+    }
   } catch (error) {
     next(error);
   }
