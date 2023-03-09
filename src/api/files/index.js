@@ -37,15 +37,14 @@ filesRouter.post(
           cover: req.file.path,
           updatedAt: new Date(),
         };
+        allBlogPosts[index] = updatedPost;
+        await writeBlogPosts(allBlogPosts);
+        console.log("FILE:", req.file);
+        res.send({ message: "file uploaded" });
       }
-      allBlogPosts[index] = updatedPost;
-      await writeBlogPosts(allBlogPosts);
-      console.log("FILE:", req.file);
       // const originalFileExtension = extname(req.file.originalname);
       // const fileName = req.params.id + originalFileExtension; // using the same "id" name from link/ router
       // await saveCoverImage(fileName, req.file.buffer);
-
-      res.send({ message: "file uploaded" });
     } catch (error) {
       next(error);
     }
