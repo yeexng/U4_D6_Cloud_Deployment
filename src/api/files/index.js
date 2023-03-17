@@ -3,6 +3,7 @@ import multer from "multer";
 import { pipeline } from "stream";
 import {
   getBlogPosts,
+  getBlogPostsJSONReadableStream,
   saveCoverImage,
   writeBlogPosts,
 } from "../../lib/fs-tools.js";
@@ -10,6 +11,7 @@ import { extname } from "path";
 import { blogPostToPDFReadableStream } from "../../lib/pdf-tools.js";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
+import { Transform } from "@json2csv/node";
 
 const filesRouter = Express.Router();
 const cloudinaryUploader = multer({
@@ -83,6 +85,20 @@ filesRouter.get("/:blogPostsId/pdf", async (req, res, next) => {
         if (err) console.log(err);
       });
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+filesRouter.get("/csv", (req, res, next) => {
+  try {
+    res.setHeader("Content-Disposition", "attachment; filename=blog.csv");
+    const source = getBlogPostsJSONReadableStream();
+    const transform = new Transform({ fields: ["category", "title", "id"] });
+    const destination = res;
+    pipeline(source, transform, destination, (err) => {
+      if (err) console.log(err);
+    });
   } catch (error) {
     next(error);
   }

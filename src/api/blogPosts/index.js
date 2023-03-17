@@ -3,6 +3,7 @@ import uniqid from "uniqid";
 import createHttpError from "http-errors";
 import { checkBlogPostSchema, triggerBadRequest } from "./validation.js"; //=> this will sometimes failed in auto-complete, make sure to check and ad .js
 import { getBlogPosts, writeBlogPosts } from "../../lib/fs-tools.js";
+import { sendEmail } from "../../lib/email-tools.js";
 const blogPostsRouter = Express.Router();
 
 blogPostsRouter.post(
@@ -22,6 +23,8 @@ blogPostsRouter.post(
       const blogPostsArray = await getBlogPosts();
       blogPostsArray.push(newBlogPost);
       await writeBlogPosts(blogPostsArray);
+      const email = "xuanng96@hotmail.com";
+      await sendEmail(email);
       res.status(201).send({ id: newBlogPost.id });
     } catch (error) {
       console.log(error);
